@@ -1,0 +1,23 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+#files
+resources/test_data
+figures/

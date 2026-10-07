@@ -1,0 +1,6 @@
+Test,Statistic,p-value,Level,Note
+Kruskal-Wallis (model differences),H = 48.641,0.000000,Run-level,Across all 4 models
+Friedman (outcome differences),χ² = 60.831,0.000000,Within-run,Confounded with round order
+Permutation (overall memory effect),Δ = -0.050,0.3306,Run-level,Memory-1 minus No Memory
+Point-biserial (apology ~ own penalty),r = 0.312,0.000000,Observation,Non-independent observations
+Point-biserial (apology ~ opponent penalty),r = -0.235,0.000000,Observation,Non-independent observations

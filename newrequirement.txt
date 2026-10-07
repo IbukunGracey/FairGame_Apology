@@ -1,0 +1,10 @@
+python-dotenv
+requests
+flask
+pandas
+striprtf
+openai==1.68.2
+anthropic==0.49.0
+mistralai==1.6.0
+boto3 
+retry

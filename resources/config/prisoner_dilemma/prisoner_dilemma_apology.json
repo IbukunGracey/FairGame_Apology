@@ -1,0 +1,210 @@
+{
+"name": "Prisoner's Dilemma",
+"gamePromptFile": "prisoner_dilemma_en.txt",
+"nRounds": 3,
+"nRoundsIsKnown": true,
+
+"llm": "OpenAIGPT4o",
+
+"languages": [
+    "en"
+],
+
+"allAgentPermutations": true,
+
+"agents": {
+    "names": [
+        "agent1",
+        "agent2"
+    ],
+
+    "personalities": {
+        "en": [
+            "cooperative",
+            "selfish"
+        ],
+
+        "fr": [
+            "coopératif",
+            "égoïste"
+        ],
+
+        "ar": [
+            "متعاون",
+            "أناني"
+        ],
+
+        "cn": [
+            "合作型的",
+            "自私型的"
+        ],
+
+        "vn": [
+            "một người hợp tác",
+            "một người ích kỷ"
+        ],
+
+        "yor": [
+            "aláṣepọ̀",
+            "ọba-ẹni"
+        ],
+
+        "pig": [
+            "to dey reason together",
+            "to dey think only imself"
+        ]
+    },
+
+    "opponentPersonalityProb": [
+        0
+    ]
+},
+
+"payoffMatrix": {
+
+    "weights": {
+        "weight1": 6,
+        "weight2": 10,
+        "weight3": 0,
+        "weight4": 2
+    },
+
+    "strategies": {
+
+        "en": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        },
+
+        "fr": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        },
+
+        "ar": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        },
+
+        "cn": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        },
+
+        "vn": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        },
+
+        "yor": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        },
+
+        "pig": {
+            "strategy1": "OptionA",
+            "strategy2": "OptionB"
+        }
+    },
+
+    "combinations": {
+
+        "combination1": [
+            "strategy1",
+            "strategy1"
+        ],
+
+        "combination2": [
+            "strategy1",
+            "strategy2"
+        ],
+
+        "combination3": [
+            "strategy2",
+            "strategy1"
+        ],
+
+        "combination4": [
+            "strategy2",
+            "strategy2"
+        ]
+    },
+
+    "matrix": {
+
+        "combination1": [
+            "weight1",
+            "weight1"
+        ],
+
+        "combination2": [
+            "weight3",
+            "weight2"
+        ],
+
+        "combination3": [
+            "weight2",
+            "weight3"
+        ],
+
+        "combination4": [
+            "weight4",
+            "weight4"
+        ]
+    }
+},
+
+"apology": {
+
+    "enabled": true,
+    "promptFile": "prisoner_dilemma_apology_en.txt",
+    "maxMessageLength": 25,
+    "decisions": {
+
+        "en": {
+            "apologyDecision1": "YES",
+            "apologyDecision2": "NO"
+        },
+
+        "fr": {
+            "apologyDecision1": "OUI",
+            "apologyDecision2": "NON"
+        },
+
+        "ar": {
+            "apologyDecision1": "نعم",
+            "apologyDecision2": "لا"
+        },
+
+        "cn": {
+            "apologyDecision1": "是",
+            "apologyDecision2": "否"
+        },
+
+        "vn": {
+            "apologyDecision1": "CÓ",
+            "apologyDecision2": "KHÔNG"
+        },
+
+        "yor": {
+            "apologyDecision1": "BẸẸNI",
+            "apologyDecision2": "RÁRÁ"
+        },
+
+        "pig": {
+            "apologyDecision1": "YES",
+            "apologyDecision2": "NO"
+        }
+    },
+
+    "outputSchema": {
+        "apology_decision": "string",
+        "apology_message": "string"
+    }
+},
+
+"stopGameWhen": [],
+
+"agentsCommunicate": false
+
+}

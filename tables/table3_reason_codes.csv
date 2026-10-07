@@ -1,0 +1,9 @@
+model,history_condition,repair_trust,strategic_future_benefit,remorse,politeness
+Claude Opus 4.8,Memory-1,11,2,0,0
+Claude Opus 4.8,No Memory,0,20,0,0
+GPT-5.5,Memory-1,37,2,1,0
+GPT-5.5,No Memory,34,3,0,0
+Llama 4 Scout,Memory-1,0,1,1,4
+Llama 4 Scout,No Memory,0,14,0,16
+Mistral Large 3,Memory-1,48,0,4,0
+Mistral Large 3,No Memory,40,0,0,0

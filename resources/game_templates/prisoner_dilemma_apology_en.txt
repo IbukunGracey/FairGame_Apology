@@ -1,0 +1,32 @@
+Stage 2: APOLOGY PHASE 
+You are {currentPlayerName}.
+
+In the previous round:
+
+* You selected: {playerAction}
+* Your opponent selected: {opponentAction}
+
+Round outcome:
+
+* Your penalty: {playerPenalty}
+* Opponent penalty: {opponentPenalty}
+
+After observing the outcome of this round, decide whether you wish to send an apology to the opponent
+
+Rules:
+
+* If you apologize:
+  * set "apology_decision" to "{apologyYes}"
+  * provide a short apology message with a maximum of {maxMessageLength} words
+  * The message will be shown verbatim to your opponent.
+  * Do not propose changes to the game rules.
+  * Do not offer compensation unless compensation is explicitly available
+  as a separate action.
+
+* If you do not apologize:
+  * set "apology_decision" to "{apologyNo}"
+  * set "apology_message" to ""
+
+Return ONLY valid JSON.
+Do not include explanations, markdown, comments, or extra text.
+
