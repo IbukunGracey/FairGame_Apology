@@ -46,6 +46,70 @@ This controlled workflow enables researchers to:
 - Study the strategic use of apologies in controlled game-theoretic scenarios
 - Investigate the authenticity and effectiveness of LLM-generated apologies in rebuilding cooperation
 
+## Costly Apology Extension
+
+The Costly Apology Extension introduces a materialized commitment mechanism to the apology framework, allowing agents to offer tangible compensation alongside verbal apologies. This extension explores whether LLMs recognize and utilize costly signaling in strategic contexts.
+
+### Key Features
+
+**Compensation Mechanism**:
+- Agents can choose to offer compensation when apologizing
+- Compensation includes:
+  - **Decision**: YES/NO to offer compensation
+  - **Amount**: Numeric value representing the compensation (validated against the payoff matrix to prevent over-compensation)
+  - **Reason**: Brief explanation for the compensation offer (max 30 words)
+
+**Game Variants with Different Payoff Structures**:
+The extension tests three game variants to examine how different incentive structures affect apology and compensation behaviors:
+
+| Outcome | Conventional | Mild | Harsh |
+|---------|-------------|------|-------|
+| **R** (Cooperate, Cooperate) | (2, 2) | (2, 2) | (5, 5) |
+| **S** (Cooperate, Defect) | (10, 0) | (10, 0) | (10, 0) |
+| **T** (Defect, Cooperate) | (0, 10) | (0, 10) | (0, 10) |
+| **P** (Defect, Defect) | (6, 6) | (8, 8) | (8, 8) |
+
+These payoff variations create different strategic environments:
+- **Conventional**: Standard Prisoner's Dilemma with moderate mutual cooperation reward (R=2) and moderate mutual defection penalty (P=6)
+- **Mild**: Same cooperation reward as Conventional but harsher defection penalty (P=8), making mutual defection more costly
+- **Harsh**: Enhanced cooperation reward (R=5) with harsh defection penalty (P=8), strongly incentivizing cooperation
+
+Each game variant has corresponding configurations both with and without compensation options, enabling comparative analysis of:
+- How different payoff structures influence apology and compensation strategies
+- Whether LLMs adjust their costly apology behaviors based on game stakes
+- The relationship between cooperation incentives, defection penalties, and compensation amounts offered
+
+### LLMs Evaluated
+
+The costly apology experiment evaluates four state-of-the-art LLMs:
+1. **Claude Opus 4.8** (Anthropic)
+2. **GPT-4o** (OpenAI)
+3. **Mistral Large** (Mistral AI)
+4. **Gemini 1.5 Pro** (Google)
+
+These models were selected to represent different architectural approaches and training paradigms in current LLM development.
+
+### Research Questions Addressed
+
+This extension enables investigation of:
+- Whether LLMs distinguish between cheap talk (verbal apologies) and costly signals (apologies with compensation)
+- How compensation affects trust restoration and subsequent cooperation
+- Whether LLMs demonstrate appropriate intuition about when costly apologies are warranted
+- Cross-model differences in costly apology strategies and effectiveness
+
+### Code and Data Availability
+
+**Code**: The full implementation of the Costly Apology Extension is available in the `feature/costly_apology_extension` branch, including:
+- Enhanced apology decision schemas with compensation fields
+- Validation logic for compensation amounts
+- Configuration files for all game variants (mild, conventional, harsh) with and without compensation
+- Extended game templates and prompt structures
+- Results processing for compensation-aware analysis
+
+**Data**: The complete dataset generated from the apology experiment, including all LLM responses, compensation decisions, and behavioral outcomes across the three game variants, is publicly available at:
+
+**DOI: [10.5281/zenodo.23752883](https://doi.org/10.5281/zenodo.23752883)**
+
 ## Code Repository Structure
 
 The following tree shows the list of the repository's sections and their main contents:
