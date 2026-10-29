@@ -23,16 +23,28 @@ Current Prompt - Next Action Phase:
 Previous interaction:
 You chose: {playerAction}
 Your opponent chose: {opponentAction}
+
+Original penalties:
 Your penalty: {playerPenalty}
 Opponent penalty: {opponentPenalty}
 
 Your apology:
-Decision: {currentApologyDecision}
+Decision: {currentApologyDecision}{yourCompensationDetails}: [
 Message: {currentApologyMessage}
+Compensation decision: {currentCompensationDecision}
+Compensation offered: {currentCompensationAmount}
+Compensation reason: {currentCompensationReason}]
 
 Opponent's apology:
-Decision: {opponentApologyDecision}
+Decision: {opponentApologyDecision}{opponentCompensationDetails}: [
 Message: {opponentApologyMessage}
+Compensation decision: {opponentCompensationDecision}
+Compensation offered: {opponentCompensationAmount}
+Compensation reason: {opponentCompensationReason}]
+
+Adjusted penalties (after compensation):
+Your adjusted penalty: {playerAdjustedPenalty}
+Opponent adjusted penalty: {opponentAdjustedPenalty}
 
 {reasonCodes}: [Your reason: {currentReasonCode}
 Opponent's reason: {opponentReasonCode}]

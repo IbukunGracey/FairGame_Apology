@@ -34,7 +34,7 @@
     "payoffMatrix": {
 
         "weights": {
-            "weight1": 6,
+            "weight1": 8,
             "weight2": 10,
             "weight3": 0,
             "weight4": 2
@@ -73,7 +73,7 @@
     "experiment": {
         "mode": "controlled",
         "scenarioGeneration": true,
-        "memoryType": "memory1",
+        "memoryType": "no_memory",   
         "outcomes": ["R", "S", "T", "P"],
         "previousOutcomes": ["R", "S", "T", "P"],
         "previousApologyStates": ["AA", "AN", "NA", "NN"],

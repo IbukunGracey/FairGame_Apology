@@ -262,7 +262,10 @@ class ConfigValidator:
 
         required_output_keys = {
             "apology_decision",
-            "apology_message"
+            "apology_message",
+            "compensation_decision",
+            "compensation_amount",
+            "compensation_reason"
         }
 
         missing_output_keys = (
@@ -275,6 +278,20 @@ class ConfigValidator:
                 "apology.outputSchema missing keys: "
                 f"{', '.join(missing_output_keys)}"
             )
+
+        # Validate compensation configuration if present
+        if "compensation" in apology_data:
+            comp_cfg = apology_data["compensation"]
+            if not isinstance(comp_cfg, dict):
+                raise TypeError("apology.compensation must be a dictionary")
+
+            if "enabled" in comp_cfg and not isinstance(comp_cfg["enabled"], bool):
+                raise TypeError("apology.compensation.enabled must be boolean")
+
+            if "maxCompensationReasonLength" in comp_cfg:
+                max_len = comp_cfg["maxCompensationReasonLength"]
+                if not isinstance(max_len, int) or max_len <= 0:
+                    raise ValueError("maxCompensationReasonLength must be positive int")
 
     VALID_EXPERIMENT_MODES = {"interactive", "controlled"}
 

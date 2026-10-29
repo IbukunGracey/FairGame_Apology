@@ -86,7 +86,11 @@ class GameData:
                     "apology_decisions": [],
                     "apology_messages": [],
                     "reason_codes": [],
-                    "next_actions": []
+                    "next_actions": [],
+                    "compensation_decisions": [],
+                    "compensation_amounts": [],
+                    "compensation_reasons": [],
+                    "adjusted_scores": []
                 }
             )
 
@@ -128,6 +132,34 @@ class GameData:
             row[f"{prefix}next_actions"] = (
                 round_data.get(
                     "next_actions",
+                    []
+                )
+            )
+
+            row[f"{prefix}compensation_decisions"] = (
+                round_data.get(
+                    "compensation_decisions",
+                    []
+                )
+            )
+
+            row[f"{prefix}compensation_amounts"] = (
+                round_data.get(
+                    "compensation_amounts",
+                    []
+                )
+            )
+
+            row[f"{prefix}compensation_reasons"] = (
+                round_data.get(
+                    "compensation_reasons",
+                    []
+                )
+            )
+
+            row[f"{prefix}adjusted_scores"] = (
+                round_data.get(
+                    "adjusted_scores",
                     []
                 )
             )

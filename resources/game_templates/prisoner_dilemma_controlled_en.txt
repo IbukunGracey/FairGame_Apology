@@ -28,7 +28,17 @@ Your penalty: {playerPenalty}
 Opponent penalty: {opponentPenalty}
 
 After observing this outcome, decide whether to apologise to your opponent.
-The apology message will be shown to your opponent before the next action choice is made.
+
+If you decide to apologise, you may choose whether or not to compensate your opponent.
+Compensation is a transfer of penalty points:
+- Your penalty increases by the compensation amount.
+- Your opponent's penalty decreases by the same amount.
+- If you choose to compensate your opponent, select a compensation amount greater than 0 and less than or equal to {maxPenalty}.
+- If you decide to apologise but do not wish to compensate your opponent, choose a compensation amount of 0 and provide a compensation reason.
+- If you decide not to apologise, do not offer compensation. Leave both compensation_amount and compensation_reason empty.
+- Provide a reason for the compensation amount if you choose to compensate your opponent.
+
+The apology message and compensation decision will be shown to your opponent before the next action choice is made.
 
 Return ONLY valid JSON.
 Do not include explanations, markdown, comments, or extra text.
@@ -36,5 +46,8 @@ Do not include explanations, markdown, comments, or extra text.
 {{
     "apology_decision": "{apologyYes}" or "{apologyNo}",
     "apology_message": "maximum {maxMessageLength} words; empty string if {apologyNo}",
-    "reason_code": "remorse|repair_trust|strategic_future_benefit|politeness|no_responsibility|other"
+    "reason_code": "remorse|repair_trust|strategic_future_benefit|politeness|no_responsibility|other",
+    "compensation_decision": "{apologyYes} or {apologyNo}; only applicable if apology_decision is {apologyYes}; empty string if apology_decision is {apologyNo}"
+    "compensation_amount": number; positive if compensating, 0 if apologising without compensation, empty string if apology_decision is {apologyNo},
+    "compensation_reason": "maximum {maxCompensationReasonLength} words; required if apologising (whether or not compensating), empty if apology_decision is {apologyNo}"
 }}

@@ -153,17 +153,25 @@ class PromptCreator:
             "maxMessageLength", 25
         )
 
+        # Add compensation placeholders
+        comp_cfg = apology_cfg.get("compensation", {})
+        pv_dict["maxCompensationReasonLength"] = comp_cfg.get("maxCompensationReasonLength", 30)
+        pv_dict["maxPenalty"] = max(self.payoff_matrix.weights.values())
+
     def _add_outcome_placeholders(self, agent, opponents, pv_dict):
         pv_dict["playerAction"] = agent.last_strategy()
         pv_dict["playerPenalty"] = agent.last_score()
+        pv_dict["playerAdjustedPenalty"] = agent.last_adjusted_score()
 
         opponent = opponents[0] if opponents else None
         if opponent is not None:
             pv_dict["opponentAction"] = opponent.last_strategy()
             pv_dict["opponentPenalty"] = opponent.last_score()
+            pv_dict["opponentAdjustedPenalty"] = opponent.last_adjusted_score()
         else:
             pv_dict["opponentAction"] = ""
             pv_dict["opponentPenalty"] = ""
+            pv_dict["opponentAdjustedPenalty"] = ""
 
     def _add_apology_placeholders(self, agent, opponents, pv_dict):
         self._add_apology_labels(pv_dict)
@@ -207,16 +215,32 @@ class PromptCreator:
 
             p_apology = player_data.get("apology_decision")
             o_apology = opponent_data.get("apology_decision")
+            p_comp = player_data.get("compensation_amount", 0)
+            o_comp = opponent_data.get("compensation_amount", 0)
 
             if p_apology or o_apology:
                 apology_parts = []
                 if p_apology:
                     label = "apologised" if p_apology in ("apologize", "YES") else "did not apologise"
-                    apology_parts.append(f"Your apology decision: you {label}.")
+                    apology_line = f"Your apology decision: you {label}."
+                    if p_comp > 0:
+                        apology_line += f" You offered compensation of {p_comp}."
+                    apology_parts.append(apology_line)
                 if o_apology:
                     label = "apologised" if o_apology in ("apologize", "YES") else "did not apologise"
-                    apology_parts.append(f"Opponent's apology decision: opponent {label}.")
+                    apology_line = f"Opponent's apology decision: opponent {label}."
+                    if o_comp > 0:
+                        apology_line += f" Opponent offered compensation of {o_comp}."
+                    apology_parts.append(apology_line)
                 lines.append(" ".join(apology_parts))
+
+            # Add adjusted penalties if they exist
+            player_adjusted = player_data.get("adjusted_score")
+            opponent_adjusted = opponent_data.get("adjusted_score")
+            if player_adjusted is not None or opponent_adjusted is not None:
+                lines.append(
+                    f"Adjusted penalties: yours={player_adjusted}, opponent's={opponent_adjusted}."
+                )
 
             paragraphs.append("\n".join(lines))
 
@@ -311,21 +335,59 @@ class PromptCreator:
                 opponents,
                 placeholder_value_dict
             )
-            placeholder_value_dict["currentApologyDecision"] = (
-                agent.last_apology_decision()
-            )
-            placeholder_value_dict["currentApologyMessage"] = (
-                agent.last_apology_message()
-            )
 
+            # Current player apology and compensation
+            current_apology = agent.last_apology_decision()
+            placeholder_value_dict["currentApologyDecision"] = current_apology
+
+            # Only show compensation details if apology was given
+            current_apologized = current_apology and current_apology.upper() in ("YES", "APOLOGIZE")
+            if current_apologized:
+                placeholder_value_dict["currentApologyMessage"] = (
+                    agent.last_apology_message()
+                )
+                placeholder_value_dict["currentCompensationDecision"] = (
+                    agent.last_compensation_decision()
+                )
+                placeholder_value_dict["currentCompensationAmount"] = (
+                    agent.last_compensation_amount()
+                )
+                placeholder_value_dict["currentCompensationReason"] = (
+                    agent.last_compensation_reason()
+                )
+            else:
+                placeholder_value_dict["currentApologyMessage"] = ""
+                placeholder_value_dict["currentCompensationDecision"] = ""
+                placeholder_value_dict["currentCompensationAmount"] = ""
+                placeholder_value_dict["currentCompensationReason"] = ""
+
+            # Opponent apology and compensation
             opponent = opponents[0] if opponents else None
             if opponent is not None:
-                placeholder_value_dict["opponentApologyDecision"] = (
-                    opponent.last_apology_decision()
-                )
-                placeholder_value_dict["opponentApologyMessage"] = (
-                    opponent.last_apology_message()
-                )
+                opponent_apology = opponent.last_apology_decision()
+                placeholder_value_dict["opponentApologyDecision"] = opponent_apology
+
+                # Only show compensation details if opponent apologized
+                opponent_apologized = opponent_apology and opponent_apology.upper() in ("YES", "APOLOGIZE")
+                if opponent_apologized:
+                    placeholder_value_dict["opponentApologyMessage"] = (
+                        opponent.last_apology_message()
+                    )
+                    placeholder_value_dict["opponentCompensationDecision"] = (
+                        opponent.last_compensation_decision()
+                    )
+                    placeholder_value_dict["opponentCompensationAmount"] = (
+                        opponent.last_compensation_amount()
+                    )
+                    placeholder_value_dict["opponentCompensationReason"] = (
+                        opponent.last_compensation_reason()
+                    )
+                else:
+                    placeholder_value_dict["opponentApologyMessage"] = ""
+                    placeholder_value_dict["opponentCompensationDecision"] = ""
+                    placeholder_value_dict["opponentCompensationAmount"] = ""
+                    placeholder_value_dict["opponentCompensationReason"] = ""
+
                 placeholder_value_dict["currentReasonCode"] = (
                     agent.last_reason_code()
                 )
@@ -335,8 +397,26 @@ class PromptCreator:
             else:
                 placeholder_value_dict["opponentApologyDecision"] = ""
                 placeholder_value_dict["opponentApologyMessage"] = ""
+                placeholder_value_dict["opponentCompensationDecision"] = ""
+                placeholder_value_dict["opponentCompensationAmount"] = ""
+                placeholder_value_dict["opponentCompensationReason"] = ""
                 placeholder_value_dict["currentReasonCode"] = ""
                 placeholder_value_dict["opponentReasonCode"] = ""
+
+            # Process conditional compensation sections
+            your_comp_details = self._find_part('yourCompensationDetails')
+            if current_apologized and your_comp_details:
+                self._replace_part(your_comp_details)
+            elif your_comp_details:
+                self._remove_part(your_comp_details)
+
+            opp_comp_details = self._find_part('opponentCompensationDetails')
+            opponent_apologized = (opponent and opponent.last_apology_decision()
+                                  and opponent.last_apology_decision().upper() in ("YES", "APOLOGIZE"))
+            if opponent_apologized and opp_comp_details:
+                self._replace_part(opp_comp_details)
+            elif opp_comp_details:
+                self._remove_part(opp_comp_details)
 
             self.process_reason_codes(placeholder_value_dict)
 

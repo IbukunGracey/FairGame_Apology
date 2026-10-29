@@ -195,6 +195,10 @@ class ResultsProcessor:
         apology_decisions, apology_messages = [], []
         reason_codes = []
         next_actions = []
+        compensation_decisions = []
+        compensation_amounts = []
+        compensation_reasons = []
+        adjusted_scores = []
 
         for round_actions in history.values():
             for action in round_actions:
@@ -216,6 +220,18 @@ class ResultsProcessor:
                     next_actions.append(
                         action.get("next_action")
                     )
+                    compensation_decisions.append(
+                        action.get("compensation_decision")
+                    )
+                    compensation_amounts.append(
+                        action.get("compensation_amount")
+                    )
+                    compensation_reasons.append(
+                        action.get("compensation_reason")
+                    )
+                    adjusted_scores.append(
+                        action.get("adjusted_score")
+                    )
 
         return {
             "strategies": strategies,
@@ -224,5 +240,9 @@ class ResultsProcessor:
             "apology_decisions": apology_decisions,
             "apology_messages": apology_messages,
             "reason_codes": reason_codes,
-            "next_actions": next_actions
+            "next_actions": next_actions,
+            "compensation_decisions": compensation_decisions,
+            "compensation_amounts": compensation_amounts,
+            "compensation_reasons": compensation_reasons,
+            "adjusted_scores": adjusted_scores
         }

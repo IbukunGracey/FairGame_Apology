@@ -1,0 +1,119 @@
+{
+    "name": "Prisoner's Dilemma",
+    "gamePromptFile": "prisoner_dilemma_en.txt",
+    "nRounds": 1,
+    "nRoundsIsKnown": true,
+
+    "llm": "OR_Claude48",
+
+    "languages": [
+        "en"
+    ],
+
+    "allAgentPermutations": false,
+
+    "agents": {
+        "names": [
+            "agent1",
+            "agent2"
+        ],
+
+        "personalities": {
+            "en": [
+                "None",
+                "None"
+            ]
+        },
+
+        "opponentPersonalityProb": [
+            0,
+            0
+        ]
+    },
+
+    "payoffMatrix": {
+
+        "weights": {
+            "weight1": 8,
+            "weight2": 10,
+            "weight3": 0,
+            "weight4": 2
+        },
+
+        "strategies": {
+            "en": {
+                "strategy1": "OptionA",
+                "strategy2": "OptionB"
+            }
+        },
+
+        "combinations": {
+            "combination1": ["strategy1", "strategy1"],
+            "combination2": ["strategy1", "strategy2"],
+            "combination3": ["strategy2", "strategy1"],
+            "combination4": ["strategy2", "strategy2"]
+        },
+
+        "matrix": {
+            "combination1": ["weight1", "weight1"],
+            "combination2": ["weight3", "weight2"],
+            "combination3": ["weight2", "weight3"],
+            "combination4": ["weight4", "weight4"]
+        }
+    },
+
+    "personalityDefinitions": {
+        "en": {
+            "cooperative": "You value mutual benefit and fair outcomes.",
+            "selfish": "You prioritize your own outcomes above all else.",
+            "None": ""
+        }
+    },
+
+    "experiment": {
+        "mode": "controlled",
+        "scenarioGeneration": true,
+        "memoryType": "no_memory",
+        "outcomes": ["R", "S", "T", "P"],
+        "previousOutcomes": ["R", "S", "T", "P"],
+        "previousApologyStates": ["AA", "AN", "NA", "NN"],
+        "goalCondition": "minimize_penalty"
+    },
+
+    "goals": {
+        "minimize_penalty": "Minimize your penalty.",
+        "maximize_reward": "Maximize your reward.",
+        "maximize_joint_reward": "Maximize the combined reward for both players.",
+        "fairness": "Seek outcomes that are fair to both players."
+    },
+
+    "apology": {
+        "enabled": true,
+        "promptFile": "prisoner_dilemma_controlled_en.txt",
+        "maxMessageLength": 30,
+        "decisions": {
+            "en": {
+                "apologyDecision1": "YES",
+                "apologyDecision2": "NO"
+            }
+        },
+        "outputSchema": {
+            "apology_decision": "string",
+            "apology_message": "string",
+            "reason_code": "string",
+            "compensation_decision": "string",
+            "compensation_amount": "number",
+            "compensation_reason": "string",
+            "next_action": "string"
+        },
+        "includeReasonCodeInNextAction": true,
+        "compensation": {
+            "enabled": true,
+            "maxCompensationReasonLength": 30
+        }
+    },
+
+    "stopGameWhen": [],
+
+    "agentsCommunicate": false
+}

@@ -119,6 +119,18 @@ class GameHistory:
                     "reason_code":
                         data.get("reason_code"),
 
+                    "compensation_decision":
+                        data.get("compensation_decision"),
+
+                    "compensation_amount":
+                        data.get("compensation_amount"),
+
+                    "compensation_reason":
+                        data.get("compensation_reason"),
+
+                    "adjusted_score":
+                        data.get("adjusted_score"),
+
                     "next_action":
                         data.get("next_action")
                 })

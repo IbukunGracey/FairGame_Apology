@@ -68,6 +68,12 @@ class Agent:
         self.reason_codes: List[str] = []
         self.next_actions: List[str] = []
 
+        # Compensation history
+        self.compensation_decisions: List[str] = []
+        self.compensation_amounts: List[float] = []
+        self.compensation_reasons: List[str] = []
+        self.adjusted_scores: List[float] = []  # Keep as float to avoid rounding compensation
+
     def execute_strategy_round(self, prompt: str) -> str:
         """
         Executes Stage 1:
@@ -148,6 +154,24 @@ class Agent:
                     ""
                 ),
 
+            "compensation_decision":
+                parsed_response.get(
+                    "compensation_decision",
+                    "NO"
+                ),
+
+            "compensation_amount":
+                parsed_response.get(
+                    "compensation_amount",
+                    0
+                ),
+
+            "compensation_reason":
+                parsed_response.get(
+                    "compensation_reason",
+                    ""
+                ),
+
             "next_action":
                 parsed_response.get(
                     "next_action",
@@ -216,6 +240,29 @@ class Agent:
 
     def last_reason_code(self) -> str:
         return self.reason_codes[-1] if self.reason_codes else ""
+
+    def add_compensation(self, decision: str, amount: float, reason: str) -> None:
+        """Record compensation offered this round."""
+        self.compensation_decisions.append(decision)
+        self.compensation_amounts.append(amount)
+        self.compensation_reasons.append(reason)
+
+    def last_compensation_decision(self) -> str:
+        return self.compensation_decisions[-1] if self.compensation_decisions else "NO"
+
+    def last_compensation_amount(self) -> float:
+        return self.compensation_amounts[-1] if self.compensation_amounts else 0.0
+
+    def last_compensation_reason(self) -> str:
+        return self.compensation_reasons[-1] if self.compensation_reasons else ""
+
+    def add_adjusted_score(self, score: float) -> None:
+        """Record adjusted penalty after compensation."""
+        self.adjusted_scores.append(score)
+
+    def last_adjusted_score(self) -> float:
+        """Return adjusted penalty, or original if not yet adjusted."""
+        return self.adjusted_scores[-1] if self.adjusted_scores else float(self.last_score())
 
     def get_info(self) -> Dict[str, Any]:
         """

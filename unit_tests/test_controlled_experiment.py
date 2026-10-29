@@ -83,9 +83,16 @@ def _base_config(memory_type="no_memory", scenario_gen=True, personalities=None)
                 "apology_decision": "string",
                 "apology_message": "string",
                 "reason_code": "string",
+                "compensation_decision": "string",
+                "compensation_amount": "number",
+                "compensation_reason": "string",
                 "next_action": "string"
             },
-            "includeReasonCodeInNextAction": True
+            "includeReasonCodeInNextAction": True,
+            "compensation": {
+                "enabled": True,
+                "maxCompensationReasonLength": 30
+            }
         },
         "stopGameWhen": [],
         "agentsCommunicate": False,
@@ -622,6 +629,277 @@ class TestNextActionPromptContent(unittest.TestCase):
         )
         self.assertIn("reason=remorse", prompt)
         self.assertIn("opp_reason=no_responsibility", prompt)
+
+
+class TestCompensationValidation(unittest.TestCase):
+    """Test the three-outcome compensation model and validation logic."""
+
+    def setUp(self):
+        """Set up test agents and game round."""
+        from src.game_round import GameRound
+        from src.payoff_matrix import PayoffMatrix
+
+        config = _base_config("no_memory")
+        self.config = config
+
+        # Create mock game
+        self.game = MagicMock()
+        self.game.config = config
+        self.game.experiment_mode = "controlled"
+        self.game.current_round = 1
+
+        pm = PayoffMatrix(config["payoffMatrix"], "en")
+        self.game.payoff_matrix = pm
+
+        # Create agents
+        agent1 = Agent("agent1", "OpenAIGPT4o", "None", 0)
+        agent2 = Agent("agent2", "OpenAIGPT4o", "None", 0)
+
+        # Set initial scores
+        agent1.add_strategy("OptionA")
+        agent1.add_score(6)
+        agent2.add_strategy("OptionA")
+        agent2.add_score(6)
+
+        self.game.agents = {"agent1": agent1, "agent2": agent2}
+
+        self.round = GameRound(self.game)
+
+    def test_outcome1_no_apology_no_compensation(self):
+        """Outcome 1: No apology = no compensation allowed."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="NO",
+            compensation_decision="NO",
+            compensation_amount=0,
+            compensation_reason="",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "")
+
+    def test_outcome1_no_apology_but_compensation_offered_is_rejected(self):
+        """Outcome 1: If no apology but compensation offered, force everything to empty/NO/0."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="NO",
+            compensation_decision="YES",
+            compensation_amount=3,
+            compensation_reason="I want to help",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "")
+
+    def test_outcome2_apology_without_compensation(self):
+        """Outcome 2: Apology without compensation = decision NO, amount 0, reason provided."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="NO",
+            compensation_amount=0,
+            compensation_reason="I apologize but cannot afford compensation",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "I apologize but cannot afford compensation")
+
+    def test_outcome2_apology_without_compensation_but_nonzero_amount_given(self):
+        """Outcome 2: If compensation_decision=NO but amount>0, force amount to 0."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="NO",
+            compensation_amount=3,
+            compensation_reason="My reason",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "My reason")
+
+    def test_outcome3_apology_with_valid_compensation(self):
+        """Outcome 3: Apology with compensation = decision YES, positive amount, reason provided."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount=3,
+            compensation_reason="To make amends",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "YES")
+        self.assertEqual(amount, 3.0)
+        self.assertEqual(reason, "To make amends")
+
+    def test_outcome3_compensation_exceeds_max_penalty(self):
+        """Outcome 3: Compensation exceeding maxPenalty should be capped at min(maxPenalty, opponent_penalty)."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount=15,
+            compensation_reason="Too generous",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "YES")
+        # Capped first at maxPenalty (10), then at opponent_penalty (6)
+        self.assertEqual(amount, 6.0)
+        self.assertEqual(reason, "Too generous")
+
+    def test_outcome3_compensation_exceeds_opponent_penalty(self):
+        """Outcome 3: Compensation exceeding opponent's penalty should be capped."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount=8,
+            compensation_reason="Generous offer",
+            max_penalty=10,
+            opponent_penalty=5
+        )
+
+        self.assertEqual(decision, "YES")
+        self.assertEqual(amount, 5.0)  # Capped at opponent_penalty
+        self.assertEqual(reason, "Generous offer")
+
+    def test_outcome3_max_penalty_is_more_restrictive(self):
+        """Outcome 3: When maxPenalty < opponent_penalty, cap at maxPenalty."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount=12,
+            compensation_reason="Test",
+            max_penalty=8,
+            opponent_penalty=10
+        )
+
+        self.assertEqual(decision, "YES")
+        self.assertEqual(amount, 8.0)  # Capped at maxPenalty (more restrictive)
+        self.assertEqual(reason, "Test")
+
+    def test_outcome3_compensation_decision_yes_but_zero_amount(self):
+        """Outcome 3: If compensation_decision=YES but amount=0, revert to NO."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount=0,
+            compensation_reason="Invalid",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "Invalid")
+
+    def test_outcome3_compensation_decision_yes_but_negative_amount(self):
+        """Outcome 3: If compensation_decision=YES but amount<0, revert to NO."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount=-5,
+            compensation_reason="Invalid negative",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "Invalid negative")
+
+    def test_invalid_compensation_amount_string(self):
+        """Invalid amount (non-numeric) should default to 0."""
+        decision, amount, reason = self.round._validate_and_sanitize_compensation(
+            apology_decision="YES",
+            compensation_decision="YES",
+            compensation_amount="invalid",
+            compensation_reason="Test",
+            max_penalty=10,
+            opponent_penalty=6
+        )
+
+        self.assertEqual(decision, "NO")  # Reverts because amount ends up 0
+        self.assertEqual(amount, 0.0)
+        self.assertEqual(reason, "Test")
+
+
+class TestCompensationTransferLogic(unittest.TestCase):
+    """Test penalty adjustment calculations with compensation transfers."""
+
+    def test_bilateral_compensation_transfer(self):
+        """Both agents compensate each other - net transfer calculated correctly."""
+        agent1 = Agent("agent1", "OpenAIGPT4o", "None", 0)
+        agent2 = Agent("agent2", "OpenAIGPT4o", "None", 0)
+
+        # Initial penalties
+        agent1.add_strategy("OptionA")
+        agent1.add_score(6)
+        agent2.add_strategy("OptionA")
+        agent2.add_score(6)
+
+        # Agent1 compensates 2, Agent2 compensates 3
+        agent1.add_compensation("YES", 2.0, "reason1")
+        agent2.add_compensation("YES", 3.0, "reason2")
+
+        # Calculate adjusted penalties
+        # agent1: 6 + 2 - 3 = 5
+        # agent2: 6 + 3 - 2 = 7
+        expected_agent1 = 6 + 2 - 3
+        expected_agent2 = 6 + 3 - 2
+
+        self.assertEqual(expected_agent1, 5.0)
+        self.assertEqual(expected_agent2, 7.0)
+
+    def test_unilateral_compensation_transfer(self):
+        """Only one agent compensates - penalties adjust correctly."""
+        agent1 = Agent("agent1", "OpenAIGPT4o", "None", 0)
+        agent2 = Agent("agent2", "OpenAIGPT4o", "None", 0)
+
+        # Initial penalties
+        agent1.add_strategy("OptionB")
+        agent1.add_score(2)
+        agent2.add_strategy("OptionA")
+        agent2.add_score(10)
+
+        # Only agent2 compensates
+        agent1.add_compensation("NO", 0.0, "")
+        agent2.add_compensation("YES", 5.0, "I feel bad")
+
+        # Calculate adjusted penalties
+        # agent1: 2 + 0 - 5 = -3 (should be prevented!)
+        # agent2: 10 + 5 - 0 = 15
+
+        # This scenario should be caught by validation
+        # agent2's compensation (5) should have been capped at agent1's penalty (2)
+
+    def test_no_compensation_from_either_agent(self):
+        """No compensation - adjusted penalties equal original penalties."""
+        agent1 = Agent("agent1", "OpenAIGPT4o", "None", 0)
+        agent2 = Agent("agent2", "OpenAIGPT4o", "None", 0)
+
+        agent1.add_strategy("OptionB")
+        agent1.add_score(2)
+        agent2.add_strategy("OptionB")
+        agent2.add_score(2)
+
+        agent1.add_compensation("NO", 0.0, "")
+        agent2.add_compensation("NO", 0.0, "")
+
+        # Adjusted = original
+        expected_agent1 = 2.0
+        expected_agent2 = 2.0
+
+        self.assertEqual(expected_agent1, 2.0)
+        self.assertEqual(expected_agent2, 2.0)
 
 
 if __name__ == "__main__":

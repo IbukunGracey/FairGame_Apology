@@ -12,6 +12,7 @@ load_dotenv()
 MODEL_PROVIDER_MAP = {
     "Claude35Sonnet": (AnthropicConnector, "claude-3-5-sonnet-20241022"),
     "MistralLarge": (MistralConnector, "mistral-large-latest"),
+    "MistralLarge3": (MistralConnector, "mistral-large-2512"),
     "OpenAIGPT4o": (OpenAIConnector, "gpt-4o"),
     # OpenRouter models — any model available on OpenRouter can be added here.
     "OR_Claude35Sonnet": (OpenRouterConnector, "anthropic/claude-3.5-sonnet"),
